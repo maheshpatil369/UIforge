@@ -1,7 +1,7 @@
 "use client"
 import React from 'react'
 import Image from 'next/image'
-import { SignInButton, UserButton } from '@clerk/nextjs';
+import { SignInButton, UserButton, SignedOut, SignedIn } from '@clerk/nextjs';
 import { useUser } from '@clerk/nextjs';
 
 export const Header = () => {
@@ -17,13 +17,18 @@ export const Header = () => {
     <li className='hover:text-primary cursor-pointer'>Home</li>
     <li className='hover:text-primary cursor-pointer'>Pricing</li>
 </ul>
-    {!user? 
-    <SignInButton mode='model'>
-      <button className='bg-black text-white px-4 py-2 rounded-md cursor-pointer'>Get Started</button>
+<>
+  <SignedOut>
+    <SignInButton mode='modal'> 
+      <button className='bg-black text-white px-5 py-2 rounded-full hover:bg-gray-800 transition-all font-medium cursor-pointer'>
+        Get Started
+      </button>
     </SignInButton>
-    :
+  </SignedOut>
+  <SignedIn>
     <UserButton />
-  }
+  </SignedIn>
+</>
       </div>
     </div>
   )

@@ -24,12 +24,14 @@ import { useRouter } from "next/navigation";
 import { useUser } from "@clerk/nextjs";
 import { randomUUID } from "crypto";
 
+
 function Hero() {
-  const [userInput, setUserInput] = useState<string>();
+  const [userInput, setUserInput] = useState<string>("");
   const [device, setDevice] = useState<string>("website");
-  const { user } = useUser();
+  const { user, isSignedIn } = useUser();
   const router = useRouter();
   const [loading, setLoading] = useState(false);
+  
 
   const onCreateProject = async () => {
     if (!user) {
@@ -37,8 +39,8 @@ function Hero() {
       return;
     }
     setLoading(true);
-    //create a new project
-    const projectId = crypto.randomUUID();
+
+    const projectId = window.crypto.randomUUID();
     const result = await fetch("/api/project", {
       method: "POST",
       headers: {
@@ -89,9 +91,16 @@ function Hero() {
       <div className="flex w-full gap-6 mt-5 items-center justify-center">
         <InputGroup className="max-w-lg bg-white rounded-2xl">
           <InputGroupTextarea
-            data-slot="input-group-control"
-            className="flex field-sizing-content min-h-24 w-full resize-none rounded-md bg-transparent px-3 py-2.5 text-base transition-[color,box-shadow] outline-none md:text-sm"
-            placeholder="Enter what design you want to create..."
+            disabled={!isSignedIn}
+            placeholder={
+              isSignedIn
+                ? "Enter what design you want..."
+                : "Please sign-in to start designing"
+            }
+            className={cn(
+              "flex field-sizing-content min-h-24 w-full resize-none rounded-md bg-transparent px-3 py-2.5 outline-none",
+              !isSignedIn && "opacity-50 cursor-not-allowed",
+            )}
             value={userInput}
             onChange={(event) => setUserInput(event.target?.value)}
           />
@@ -108,15 +117,17 @@ function Hero() {
               </SelectContent>
             </Select>
             <InputGroupButton
-            disabled={loading}
-              className="cursor-pointer ml-auto"
+              disabled={loading || !userInput} // Input empty ho toh button disable rakhein
+              className="cursor-pointer ml-auto flex items-center justify-center min-w-[40px]"
               size="sm"
               variant="default"
               onClick={onCreateProject}
             >
-            
-              {loading ? <Loader className="animated-spin" /> : <Send />}
-           
+              {loading ? (
+                <Loader className="h-4 w-4 animate-spin" /> // animate-spin class check karein
+              ) : (
+                <Send className="h-4 w-4 text-white" /> // Icon ki height/width aur color specify karein
+              )}
             </InputGroupButton>
           </InputGroupAddon>
         </InputGroup>
