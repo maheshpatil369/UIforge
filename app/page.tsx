@@ -2,15 +2,20 @@
 import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
 import { UserButton } from "@clerk/nextjs"
+import { Header } from "./_shared/Header"
+import Hero from "./_shared/Hero"
 
-export default function Page() {
+export default function Home() {
   return (
-    <Card className="p-6 max-w-sm">
-      <CardContent>
-        <h2 className="text-xl font-bold mb-4">UIForge Ready 🚀</h2>
-        <Button>Click me</Button>
-        <UserButton></UserButton>
-      </CardContent>
-    </Card>
+  <div>
+    <Header />
+    <Hero />
+    <div className="absolute -top-40 -left-40 h-[500px] w-[500px] bg-purple-400/20 blur-[120px] rounded-full"></div>
+    <div className="absolute -top-40 -left-40 h-[500px] w-[500px] bg-pink-400/20 blur-[120px] rounded-full"></div>
+    <div className="absolute -top-40 -left-40 h-[500px] w-[500px] bg-blue-400/20 blur-[120px] rounded-full left-1/3"></div>
+    <div className="absolute -top-40 -left-40 h-[500px] w-[500px] bg-sky-400/20 blur-[120px] rounded-full left-1/2"></div>
+   
+
+  </div>
   )
 } 
