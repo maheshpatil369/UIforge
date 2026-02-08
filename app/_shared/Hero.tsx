@@ -24,14 +24,12 @@ import { useRouter } from "next/navigation";
 import { useUser } from "@clerk/nextjs";
 import { randomUUID } from "crypto";
 
-
 function Hero() {
   const [userInput, setUserInput] = useState<string>("");
   const [device, setDevice] = useState<string>("website");
   const { user, isSignedIn } = useUser();
   const router = useRouter();
   const [loading, setLoading] = useState(false);
-  
 
   const onCreateProject = async () => {
     if (!user) {
@@ -56,6 +54,8 @@ function Hero() {
     const data = await result.json();
     console.log(data);
     setLoading(false);
+
+    router.push(`/project/`+projectId);
   };
 
   return (
