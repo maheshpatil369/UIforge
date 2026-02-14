@@ -14,12 +14,14 @@ interface Props {
 
 export const SettingSection: React.FC<Props> = ({ projectDetail }) => {
   const [selectedTheme, setSelectedTheme] = useState<ThemeKey | null>(null);
-  const [projectName, setProjetName] = useState(projectDetail?.projectName);
+const [projectName, setProjetName] = useState<string>("");
   const [userNewScreenInput, setUserNewScreenInput] = useState<string>("");
 
 useEffect(() => {
-  projectDetail&&setProjetName(projectDetail?.projectName);
-}, [projectDetail])
+  if (projectDetail?.projectName) {
+    setProjetName(projectDetail.projectName);
+  }
+}, [projectDetail]);
 
   return (
     <div className="w-[300px] h-[90vh] p-5 border-r">
@@ -28,7 +30,7 @@ useEffect(() => {
       <div className="mt-3">
         <h2 className="text-sm mb-1">Project Name</h2>
         <Input
-          placeholder="Project Name"
+          placeholder="Project Name..."
           value={projectName}
           onChange={(event) => setProjetName(event.target.value)}
         />
