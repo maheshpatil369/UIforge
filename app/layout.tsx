@@ -12,9 +12,6 @@ const appFont = DM_Sans({
 export const metadata: Metadata = {
   title: "UI Forge",
   description: "A component library for building modern web applications.",
-  icons: {
-    icon: '/logoui.png',
-  },
 };
 
 export default function RootLayout({
