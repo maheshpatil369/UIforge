@@ -9,57 +9,95 @@ export async function POST(request: Request) {
     const { userInput, device, projectId } = await request.json();
     const user = await currentUser();
 
-    if (!user) {
+    if (!user?.primaryEmailAddress?.emailAddress) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
+
+    const existing = await db
+      .select()
+      .from(projectsTable)
+      .where(eq(projectsTable.projectId, projectId));
+
+    if (existing.length > 0) {
+      return NextResponse.json(existing[0]);
     }
 
     const result = await db
       .insert(projectsTable)
       .values({
-        projectId: projectId,
-        userId: user?.primaryEmailAddress?.emailAddress as string,
-        device: device,
-        userInput: userInput,
+        projectId,
+        userId: user.primaryEmailAddress.emailAddress,
+        device,
+        userInput,
       })
       .returning();
 
     return NextResponse.json(result[0]);
   } catch (error) {
+    console.error("POST /project error:", error);
     return NextResponse.json(
-      { error: "Internal Server Error" },
-      { status: 500 },
+      { error: String(error) },
+      { status: 500 }
     );
   }
 }
 
-export async function GET(req: NextRequest) {
-  const projectId = await req.nextUrl.searchParams.get("projectId");
-  const user = await currentUser();
 
+export async function GET(req: NextRequest) {
   try {
-    const result = await db
+    const projectId = req.nextUrl.searchParams.get("projectId");
+    const user = await currentUser();
+
+    if (!projectId) {
+      return NextResponse.json(
+        { error: "projectId missing" },
+        { status: 400 }
+      );
+    }
+
+    if (!user?.primaryEmailAddress?.emailAddress) {
+      return NextResponse.json(
+        { error: "Unauthorized" },
+        { status: 401 }
+      );
+    }
+
+    const project = await db
       .select()
       .from(projectsTable)
       .where(
         and(
-          eq(projectsTable.projectId, projectId as string),
+          eq(projectsTable.projectId, projectId),
           eq(
             projectsTable.userId,
-            user?.primaryEmailAddress?.emailAddress as string,
-          ),
-        ),
+            user.primaryEmailAddress.emailAddress
+          )
+        )
       );
+
+    if (!project.length) {
+      return NextResponse.json(
+        { error: "Project not found" },
+        { status: 404 }
+      );
+    }
 
     const screenConfig = await db
       .select()
       .from(ScreenConfigTable)
-      .where(eq(ScreenConfigTable.projectId, projectId as string));
+      .where(eq(ScreenConfigTable.projectId, projectId));
 
     return NextResponse.json({
-      projectDetail: result[0],
-      screenConfig: screenConfig,
+      projectDetail: project[0],
+      screenConfig,
     });
-  } catch (e) {
-    return NextResponse.json({ msg: "Error" });
+  } catch (error) {
+    console.error("GET /api/project ERROR:", error);
+    return NextResponse.json(
+      { error: String(error) },
+      { status: 500 }
+    );
   }
 }
+
+

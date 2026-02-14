@@ -12,11 +12,29 @@ export async function POST(req: NextRequest) {
     const result = await openrouter.callModel({
       model: "openai/gpt-4o-mini",
       input: [
-        {
-          role: "system",
-          content:
-            "Return JSON only with keys: projectName, theme, screens[]",
-        },
+       {
+      role: "system",
+      content: `
+Return JSON only.
+
+Structure:
+{
+  "projectName": string,
+  "theme": string,
+  "screens": [
+    {
+      "id": string,
+      "name": string,
+      "purpose": string,
+      "screenDescription": string,
+      "features": string[]
+    }
+  ]
+}
+
+screenDescription must be a short paragraph explaining the screen.
+`
+    },
         {
           role: "user",
           content: userInput,
@@ -36,23 +54,29 @@ export async function POST(req: NextRequest) {
       .update(projectsTable)
       .set({
         projectName: JSONaiResult.projectName,
-        theme: JSONaiResult.theme,
+        theme: JSONaiResult.theme ?? null,
         config: JSONaiResult,
       })
       .where(eq(projectsTable.projectId, projectId));
 
-    await Promise.all(
-      (JSONaiResult.screens || []).map((screen: any) =>
-        db.insert(ScreenConfigTable).values({
-          projectId,
-          screenId: screen.id,
-          screenName: screen.name,
-          purpose: screen.purpose,
-          screenDescription: screen.layoutDescription,
-          code: screen.code,
-        })
-      )
-    );
+await Promise.all(
+  (JSONaiResult.screens || []).map((screen: any, index: number) =>
+    db.insert(ScreenConfigTable).values({
+      projectId,
+      screenId: screen.id ?? `screen-${index + 1}`,
+      screenName: screen.name ?? "Untitled Screen",
+      purpose: screen.purpose ?? "",
+      screenDescription:
+        screen.screenDescription ??
+        screen.description ??
+        screen.layoutDescription ??
+        "",
+      code: screen.code ?? "",
+    })
+  )
+);
+
+
 
     return NextResponse.json(JSONaiResult);
   } catch (error) {

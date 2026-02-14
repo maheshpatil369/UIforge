@@ -1,16 +1,25 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
-import { THEME_NAME_LIST, THEMES } from "@/data/Themes";
+import { THEME_NAME_LIST, THEMES, ThemeKey } from "@/data/Themes";
 import { Camera, Share, Sparkle } from "lucide-react";
+import { ProjectType } from '@/type/types'
 
-export const SettingSection = () => {
-  const [selectedTheme, setSelectedTheme] = useState(null);
-  const [projectName, setProjetName] = useState("");
-  const [userNewScreenInput, setUserNewScreenInput] = useState("");
+interface Props {
+  projectDetail: ProjectType | undefined;
+}
+
+export const SettingSection: React.FC<Props> = ({ projectDetail }) => {
+  const [selectedTheme, setSelectedTheme] = useState<ThemeKey | null>(null);
+  const [projectName, setProjetName] = useState(projectDetail?.projectName);
+  const [userNewScreenInput, setUserNewScreenInput] = useState<string>("");
+
+useEffect(() => {
+  projectDetail&&setProjetName(projectDetail?.projectName);
+}, [projectDetail])
 
   return (
     <div className="w-[300px] h-[90vh] p-5 border-r">
@@ -20,6 +29,7 @@ export const SettingSection = () => {
         <h2 className="text-sm mb-1">Project Name</h2>
         <Input
           placeholder="Project Name"
+          value={projectName}
           onChange={(event) => setProjetName(event.target.value)}
         />
       </div>
@@ -27,7 +37,8 @@ export const SettingSection = () => {
       <div className="mt-3">
         <h2 className="text-sm mb-1">Generate New Screen</h2>
         <Textarea
-          placeholder="Enter Prompt too generate screen using AI"
+          placeholder="Enter prompt to generate screen using AI"
+          value={userNewScreenInput}
           onChange={(event) => setUserNewScreenInput(event.target.value)}
         />
         <Button
@@ -42,7 +53,7 @@ export const SettingSection = () => {
       <div className="mt-5">
         <h2 className="text-sm mb-1">Themes</h2>
         <div className="h-50 overflow-auto">
-          {THEME_NAME_LIST.map((theme, index) => (
+          {THEME_NAME_LIST.map((theme: ThemeKey, index: number) => (
             <div
               key={index}
               className={`p-3 border rounded-2xl mb-3 cursor-pointer transition-all ${

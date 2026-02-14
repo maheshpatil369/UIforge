@@ -20,13 +20,12 @@ export const projectsTable = pgTable("project",  {
   userId: varchar().references(() => usersTable.email).notNull()
 })
 
-export const ScreenConfigTable = pgTable('screenconfig', {
+export const ScreenConfigTable = pgTable("screenconfig", {
   id: integer().primaryKey().generatedAlwaysAsIdentity(),
-  projectId:varchar().references(()=> projectsTable.projectId),
-  screenId: varchar(),
-  screenName: varchar(),
-  purpose: varchar(),
-  screenDescription: varchar(),
-  code:text(),
-
-})
+  projectId: varchar().notNull().references(() => projectsTable.projectId),
+  screenId: varchar().notNull(),
+  screenName: varchar().notNull(),
+  purpose: varchar().default(""),
+  screenDescription: varchar().default(""),
+  code: text().default(""),
+});

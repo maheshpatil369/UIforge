@@ -1,4 +1,4 @@
-type ProjectType = {
+export type ProjectType = {
   id: number;
   projectId: string;
   device: string;

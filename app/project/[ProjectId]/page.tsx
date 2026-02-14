@@ -1,6 +1,8 @@
 "use client";
 import React, { useEffect, useState } from "react";
 import ProjectHeader from "./_shared/ProjectHeader";
+import { THEME_NAME_LIST, THEMES, ThemeKey } from "@/data/Themes";
+// import { ProjectType } from "@/types";
 import { SettingSection } from "./_shared/SettingSection";
 import { useParams } from "next/navigation";
 import axios from "axios";
@@ -16,7 +18,6 @@ export const ProjectCanvasPlayground = () => {
   useEffect(() => {
     ProjectId && GetProjectDetail();
   }, [ProjectId]);
-  
 
   const generateScreenConfig = async () => {
     setLoading(true);
@@ -41,7 +42,7 @@ export const ProjectCanvasPlayground = () => {
   const GetProjectDetail = async () => {
     setLoading(true);
     setLoadingMsg("Fetching project details...");
-    const result = await axios.get("/api/project?projectId=" + ProjectId);
+    const result = await axios.get(`/api/project?projectId=${ProjectId}`);
     console.log(result.data);
     setProjectDetail(result?.data?.projectDetail);
     // setScreenConfig(result?.data?.screenConfig);
@@ -64,7 +65,7 @@ export const ProjectCanvasPlayground = () => {
             </h2>
           </div>
         )}
-        <SettingSection />
+        <SettingSection projectDetail={projectDetail} />
 
         {/* {Canvas} */}
       </div>
