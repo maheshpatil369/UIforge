@@ -5,7 +5,7 @@ import { Rnd } from "react-rnd";
 type Props = {
   x: number;
   y: number;
-  setPanningEnabled: (enabled: boolean) => void;
+  setPanningEnabled: (enabled: boolean) => void,
   width:number,
   height:number
 };
@@ -33,8 +33,7 @@ function ScreenFrame({ x, y, width, height, setPanningEnabled }: Props) {
         <GripVertical className="text-gray-500 h-4 w-4"  />
         <h2>Drag here </h2>
       </div>
-      <div className="bg-white p-5 w-full">
-        
+      <div className="bg-white p-5 ">
         <h2>Example</h2>
       </div>
     </Rnd>

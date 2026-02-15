@@ -10,6 +10,7 @@ import { useParams } from "next/navigation";
 import axios from "axios";
 import { set } from "date-fns";
 import { Loader2Icon } from "lucide-react";
+import Canvas from "./_shared/Canvas";
 export const ProjectCanvasPlayground = () => {
   const { ProjectId } = useParams();
   const [projectDetail, setProjectDetail] = useState<any>();
@@ -17,8 +18,16 @@ export const ProjectCanvasPlayground = () => {
   const [loading, setLoading] = useState(false);
   const [loadingMsg, setLoadingMsg] = useState("Loading...");
 
+  const PAUSE_PROJECT_FLOW = false;
+
+  // useEffect(() => {
+  //   ProjectId && GetProjectDetail();
+  // }, [ProjectId]);
+
   useEffect(() => {
-    ProjectId && GetProjectDetail();
+    if (!PAUSE_PROJECT_FLOW && ProjectId) {
+      GetProjectDetail();
+    }
   }, [ProjectId]);
 
   // const generateScreenConfig = async () => {
@@ -35,50 +44,57 @@ export const ProjectCanvasPlayground = () => {
   //   setLoading(false);
   // };
 
-
   const generateScreenConfig = async () => {
-  try {
-    setLoading(true);
-    setLoadingMsg("Generating screens...");
+    try {
+      setLoading(true);
+      setLoadingMsg("Generating screens...");
 
-    // 1️⃣ Generate screen metadata
-    const result = await axios.post("/api/generate-congif", {
-      projectId: ProjectId,
-      deviceType: projectDetail?.device,
-      userInput: projectDetail?.userInput,
-    });
-
-    const screens = result.data?.screens || [];
-
-    // 2️⃣ Generate HTML for each screen
-    setLoadingMsg("Generating screen UI...");
-
-    for (const screen of screens) {
-      await axios.post("/api/generate-screen-ui", {
+      const result = await axios.post("/api/generate-congif", {
         projectId: ProjectId,
-        screenId: screen.id,
-        ScreenName: screen.name,
-        purpose: screen.purpose,
-        screenDescription: screen.screenDescription,
+        deviceType: projectDetail?.device,
+        userInput: projectDetail?.userInput,
       });
+
+      const screens = result.data?.screens || [];
+
+      setLoadingMsg("Generating screen UI...");
+
+      for (const screen of screens) {
+        await axios.post("/api/generate-screen-ui", {
+          projectId: ProjectId,
+          screenId: screen.id,
+          ScreenName: screen.name,
+          purpose: screen.purpose,
+          screenDescription: screen.screenDescription,
+        });
+      }
+
+      console.log("All screens + UI generated");
+
+      setScreenConfig(screens);
+    } catch (e) {
+      console.error(e);
+    } finally {
+      setLoading(false);
     }
+  };
 
-    console.log("All screens + UI generated");
-
-    setScreenConfig(screens);
-  } catch (e) {
-    console.error(e);
-  } finally {
-    setLoading(false);
-  }
-};
-
+  // useEffect(() => {
+  //   if (projectDetail && screenConfig && screenConfig?.length == 0) {
+  //     // generateScreenConfig();
+  //   }
+  // }, [projectDetail && screenConfig]);
 
   useEffect(() => {
-    if (projectDetail && screenConfig && screenConfig?.length == 0) {
+    if (
+      !PAUSE_PROJECT_FLOW &&
+      projectDetail &&
+      screenConfig &&
+      screenConfig.length === 0
+    ) {
       generateScreenConfig();
     }
-  }, [projectDetail && screenConfig]);
+  }, [projectDetail, screenConfig]);
 
   const GetProjectDetail = async () => {
     setLoading(true);
@@ -93,25 +109,22 @@ export const ProjectCanvasPlayground = () => {
     setLoading(false);
   };
 
-
-  
-
   return (
-    <div>
+    <div className="h-screen flex flex-col">
       <ProjectHeader />
 
-      <div>
-        {loading && (
-          <div className="p-3 absolute bg-blue-300/20 border-blue-400 rounded-xl left-1/2 top-20">
-            <h2 className="flex gap-2 item-center">
-              {" "}
-              <Loader2Icon className="animate-spin" /> {loadingMsg}
-            </h2>
-          </div>
-        )}
-        <SettingSection projectDetail={projectDetail} />
+      {/* Main workspace */}
+      <div className="flex flex-1 min-h-0">
+        {/* Left settings */}
+        <div className="w-[300px] border-r overflow-y-auto">
+          <SettingSection projectDetail={projectDetail} />
+        </div>
 
-        {/* {Canvas} */}
+        {/* Right canvas */}
+        <div className="flex-1 overflow-hidden bg-gray-100">
+          <Canvas projectDetail={projectDetail} 
+          screenConfig={screenConfig} />
+        </div>
       </div>
     </div>
   );
