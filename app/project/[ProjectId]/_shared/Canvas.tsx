@@ -47,15 +47,18 @@ function Canvas({ projectDetail, screenConfig, loading }: Props) {
                 height={SCREEN_HIGHT}
                 key={index}
                 setPanningEnabled={setPanningEnabled}
+                htmlCode={screen?.code}
+                projectDetail={projectDetail}
               />
             ))}
-            <ScreenFrame
+            {/* <ScreenFrame
               x={300}
               y={0}
               width={SCREEN_WIDTH}
               height={SCREEN_HIGHT}
               setPanningEnabled={setPanningEnabled}
-            />
+              // htmlCode={screen?.code}
+            /> */}
         </TransformComponent>
       </TransformWrapper>
     </div>
