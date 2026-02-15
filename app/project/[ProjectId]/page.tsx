@@ -1,3 +1,5 @@
+// uiforage\app\project\[ProjectId]\page.tsx
+
 "use client";
 import React, { useEffect, useState } from "react";
 import ProjectHeader from "./_shared/ProjectHeader";
@@ -19,19 +21,58 @@ export const ProjectCanvasPlayground = () => {
     ProjectId && GetProjectDetail();
   }, [ProjectId]);
 
+  // const generateScreenConfig = async () => {
+  //   setLoading(true);
+  //   setLoadingMsg("Generating screen configuration...");
+  //   const result = await axios.post("/api/generate-congif", {
+  //     projectId: ProjectId,
+  //     deviceType: projectDetail?.device,
+  //     userInput: projectDetail?.userInput,
+  //   });
+
+  //   console.log(result.data);
+  //   setScreenConfig(result.data);
+  //   setLoading(false);
+  // };
+
+
   const generateScreenConfig = async () => {
+  try {
     setLoading(true);
-    setLoadingMsg("Generating screen configuration...");
+    setLoadingMsg("Generating screens...");
+
+    // 1️⃣ Generate screen metadata
     const result = await axios.post("/api/generate-congif", {
       projectId: ProjectId,
       deviceType: projectDetail?.device,
       userInput: projectDetail?.userInput,
     });
 
-    console.log(result.data);
-    setScreenConfig(result.data);
+    const screens = result.data?.screens || [];
+
+    // 2️⃣ Generate HTML for each screen
+    setLoadingMsg("Generating screen UI...");
+
+    for (const screen of screens) {
+      await axios.post("/api/generate-screen-ui", {
+        projectId: ProjectId,
+        screenId: screen.id,
+        ScreenName: screen.name,
+        purpose: screen.purpose,
+        screenDescription: screen.screenDescription,
+      });
+    }
+
+    console.log("All screens + UI generated");
+
+    setScreenConfig(screens);
+  } catch (e) {
+    console.error(e);
+  } finally {
     setLoading(false);
-  };
+  }
+};
+
 
   useEffect(() => {
     if (projectDetail && screenConfig && screenConfig?.length == 0) {
@@ -51,6 +92,9 @@ export const ProjectCanvasPlayground = () => {
     // }
     setLoading(false);
   };
+
+
+  
 
   return (
     <div>

@@ -1,6 +1,8 @@
+// uiforge\app\api\generate-congif\route.tsx
+
 import { NextRequest, NextResponse } from "next/server";
 import { openrouter } from "@/config/openrouter";
-import { APP_LAYOUT_CONFIG_PROMPT } from "@/data/Prompt";
+import { APP_LAYOUT_CONFIG_PROMPT, GENERATE_SCREEN_PROMPT } from "@/data/Prompt";
 import { projectsTable, ScreenConfigTable } from "@/config/schema";
 import { db } from "@/config/db";
 import { eq } from "drizzle-orm";
@@ -59,19 +61,47 @@ screenDescription must be a short paragraph explaining the screen.
       })
       .where(eq(projectsTable.projectId, projectId));
 
+const screensWithCode = [];
+
+for (const screen of JSONaiResult.screens) {
+  const uiResult = await openrouter.callModel({
+    model: "openai/gpt-4o-mini",
+    input: [
+      { role: "system", content: GENERATE_SCREEN_PROMPT },
+      {
+        role: "user",
+        content: `
+Screen Name: ${screen.name}
+Purpose: ${screen.purpose}
+Description: ${screen.screenDescription}
+        `,
+      },
+    ],
+  });
+
+  let htmlCode = await uiResult.getText();
+  htmlCode = htmlCode?.replace(/```html|```/g, "").trim();
+
+  screensWithCode.push({
+    ...screen,
+    code: htmlCode,
+  });
+}
+
+
+      JSONaiResult.screens = screensWithCode;
+
 await Promise.all(
-  (JSONaiResult.screens || []).map((screen: any, index: number) =>
+  JSONaiResult.screens.map((screen: any, index: number) =>
     db.insert(ScreenConfigTable).values({
       projectId,
-      screenId: screen.id ?? `screen-${index + 1}`,
-      screenName: screen.name ?? "Untitled Screen",
-      purpose: screen.purpose ?? "",
-      screenDescription:
-        screen.screenDescription ??
-        screen.description ??
-        screen.layoutDescription ??
-        "",
-      code: screen.code ?? "",
+      screenId:
+        screen.id ??
+        screen.name.toLowerCase().replace(/\s+/g, "-"),
+      screenName: screen.name,
+      purpose: screen.purpose,
+      screenDescription: screen.screenDescription,
+      code: screen.code, // ✅ REAL HTML NOW
     })
   )
 );
