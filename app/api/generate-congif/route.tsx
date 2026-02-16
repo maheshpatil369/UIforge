@@ -18,11 +18,16 @@ export async function POST(req: NextRequest) {
       role: "system",
       content: `
 Return JSON only.
+Theme MUST be exactly ONE of:
+GOOGLE, NETFLIX, HOTSTAR, YOUTUBE, GITHUB, MICROSOFT, WHATSAPP, TELEGRAM
+
+Choose the best match based on the product style.
+Return ONLY the selected theme key.
 
 Structure:
 {
   "projectName": string,
-  "theme": string,
+  "theme": "GOOGLE" | "NETFLIX" | "HOTSTAR" | "YOUTUBE" | "GITHUB" | "MICROSOFT" | "WHATSAPP" | "TELEGRAM",
   "screens": [
     {
       "id": string,
@@ -61,47 +66,43 @@ screenDescription must be a short paragraph explaining the screen.
       })
       .where(eq(projectsTable.projectId, projectId));
 
-const screensWithCode = [];
 
-for (const screen of JSONaiResult.screens) {
-  const uiResult = await openrouter.callModel({
-    model: "openai/gpt-4o-mini",
-    input: [
-      { role: "system", content: GENERATE_SCREEN_PROMPT },
-      {
-        role: "user",
-        content: `
-Screen Name: ${screen.name}
-Purpose: ${screen.purpose}
-Description: ${screen.screenDescription}
-        `,
-      },
-    ],
-  });
+// for (const screen of JSONaiResult.screens) {
+//   const uiResult = await openrouter.callModel({
+//     model: "openai/gpt-4o-mini",
+//     input: [
+//       { role: "system", content: GENERATE_SCREEN_PROMPT },
+//       {
+//         role: "user",
+//         content: `
+// Screen Name: ${screen.name}
+// Purpose: ${screen.purpose}
+// Description: ${screen.screenDescription}
+//         `,
+//       },
+//     ],
+//   });
 
-  let htmlCode = await uiResult.getText();
-  htmlCode = htmlCode?.replace(/```html|```/g, "").trim();
+//   let htmlCode = await uiResult.getText();
+//   htmlCode = htmlCode?.replace(/```html|```/g, "").trim();
 
-  screensWithCode.push({
-    ...screen,
-    code: htmlCode,
-  });
-}
+//   screensWithCode.push({
+//     ...screen,
+//     code: htmlCode,
+//   });
+// }
 
 
-      JSONaiResult.screens = screensWithCode;
 
 await Promise.all(
-  JSONaiResult.screens.map((screen: any, index: number) =>
+  JSONaiResult.screens.map((screen: any) =>
     db.insert(ScreenConfigTable).values({
       projectId,
-      screenId:
-        screen.id ??
-        screen.name.toLowerCase().replace(/\s+/g, "-"),
+      screenId: screen.id ?? screen.name.toLowerCase().replace(/\s+/g, "-"),
       screenName: screen.name,
       purpose: screen.purpose,
       screenDescription: screen.screenDescription,
-      code: screen.code, // ✅ REAL HTML NOW
+      code: "", 
     })
   )
 );

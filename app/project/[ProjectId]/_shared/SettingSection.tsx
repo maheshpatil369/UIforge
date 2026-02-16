@@ -29,7 +29,7 @@ useEffect(() => {
         <h2 className="text-sm mb-1">Project Name</h2>
         <Input
           placeholder="Project Name"
-          value={projectName}
+          value={projectDetail?.projectName ?? ""}
           onChange={(event) => setProjetName(event.target.value)}
         />
       </div>

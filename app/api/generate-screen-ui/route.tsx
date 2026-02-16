@@ -43,9 +43,8 @@ export async function POST(req: NextRequest) {
 
     const updateResult = await db
       .update(ScreenConfigTable)
-      .set({
-        code: generatedCode as string,
-      })
+      
+      .set({ code: generatedCode })
       .where(
         and(
           eq(ScreenConfigTable.projectId, projectId),

@@ -1,11 +1,13 @@
+import type { ThemeKey } from "@/data/Themes";
 export type ProjectType = {
   id: number;
   projectId: string;
   device: string;
   userInput: string;
   createdon: string;
+  createdtime:string;
   projectName: string;
-  theme: string;
+  theme: ThemeKey | null;
   createdat: string;
 };
 

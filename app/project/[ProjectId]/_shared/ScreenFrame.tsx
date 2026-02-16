@@ -1,8 +1,10 @@
-import { themeToCssVars } from "@/data/Themes";
+import { themeToCssVars, THEMES, ThemeKey } from "@/data/Themes";
 import { ProjectType } from "@/type/types";
 import { GripVertical } from "lucide-react";
 import React from "react";
 import { Rnd } from "react-rnd";
+// import { THEMES, themeToCssVars } from "@/data/Themes";
+
 
 type Props = {
   x: number;
@@ -15,6 +17,10 @@ type Props = {
 };
 
 function ScreenFrame({ x, y, width, height, setPanningEnabled, htmlCode, projectDetail }: Props) {
+
+const themeCss = projectDetail?.theme
+  ? themeToCssVars(THEMES[projectDetail.theme])
+  : "";
 
 const html = `
 <!doctype html>
@@ -32,12 +38,16 @@ const html = `
 <!-- Tailwind + Iconify -->
 <script src="https://cdn.tailwindcss.com"></script>
 <script src="https://code.iconify.design/iconify-icon/3.0.0/iconify-icon.min.js"></script>
-  <style >
-    ${themeToCssVars(projectDetail?.theme)}
-  </style>
+<style>
+  ${themeCss}
+</style>
 </head>
 <body class="bg-[var(--background)] text-[var(--foreground)] w-full">
-  ${htmlCode ?? ""}
+  ${htmlCode?.trim()
+  ? htmlCode
+  : `<div class="h-full flex items-center justify-center text-sm opacity-60">
+       No UI generated yet
+     </div>`}
 </body>
 </html>
 `;
