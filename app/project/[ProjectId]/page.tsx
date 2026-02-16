@@ -30,54 +30,43 @@ export const ProjectCanvasPlayground = () => {
     }
   }, [ProjectId]);
 
+
+
+
   // const generateScreenConfig = async () => {
-  //   setLoading(true);
-  //   setLoadingMsg("Generating screen configuration...");
-  //   const result = await axios.post("/api/generate-congif", {
-  //     projectId: ProjectId,
-  //     deviceType: projectDetail?.device,
-  //     userInput: projectDetail?.userInput,
-  //   });
+  //   try {
+  //     setLoading(true);
+  //     setLoadingMsg("Generating screens...");
 
-  //   console.log(result.data);
-  //   setScreenConfig(result.data);
-  //   setLoading(false);
-  // };
+  //     const result = await axios.post("/api/generate-congif", {
+  //       projectId: ProjectId,
+  //       deviceType: projectDetail?.device,
+  //       userInput: projectDetail?.userInput,
+  //     });
 
-  const generateScreenConfig = async () => {
-    try {
-      setLoading(true);
-      setLoadingMsg("Generating screens...");
+  //     const screens = result.data?.screens || [];
 
-      const result = await axios.post("/api/generate-congif", {
-        projectId: ProjectId,
-        deviceType: projectDetail?.device,
-        userInput: projectDetail?.userInput,
-      });
+  //     setLoadingMsg("Generating screen UI...");
 
-      const screens = result.data?.screens || [];
+  //     for (const screen of screens) {
+  //       await axios.post("/api/generate-screen-ui", {
+  //         projectId: ProjectId,
+  //         screenId: screen.id,
+  //         ScreenName: screen.name,
+  //         purpose: screen.purpose,
+  //         screenDescription: screen.screenDescription,
+  //       });
+  //     }
 
-      setLoadingMsg("Generating screen UI...");
+  //     console.log("All screens + UI generated");
 
-      for (const screen of screens) {
-        await axios.post("/api/generate-screen-ui", {
-          projectId: ProjectId,
-          screenId: screen.id,
-          ScreenName: screen.name,
-          purpose: screen.purpose,
-          screenDescription: screen.screenDescription,
-        });
-      }
-
-      console.log("All screens + UI generated");
-
-      setScreenConfig(screens);
-    } catch (e) {
-      console.error(e);
-    } finally {
-      setLoading(false);
-    }
-  };
+  //     setScreenConfig(screens);
+  //   } catch (e) {
+  //     console.error(e);
+  //   } finally {
+  //     setLoading(false);
+  //   }
+  // };  this is working
 
   // useEffect(() => {
   //   if (projectDetail && screenConfig && screenConfig?.length == 0) {
@@ -85,6 +74,51 @@ export const ProjectCanvasPlayground = () => {
   //   }
   // }, [projectDetail && screenConfig]);
 
+
+
+// app/project/[ProjectId]/page.tsx
+
+const generateScreenConfig = async () => {
+  try {
+    setLoading(true);
+    setLoadingMsg("Generating screens...");
+
+    const result = await axios.post("/api/generate-congif", {
+      projectId: ProjectId,
+      deviceType: projectDetail?.device,
+      userInput: projectDetail?.userInput,
+    });
+
+    const screens = result.data?.screens || [];
+    setLoadingMsg("Generating screen UI...");
+
+    // Create a temporary array to hold screens with code
+    const updatedScreens = [...screens];
+
+    for (let i = 0; i < updatedScreens.length; i++) {
+      const response = await axios.post("/api/generate-screen-ui", {
+        projectId: ProjectId,
+        screenId: updatedScreens[i].id,
+        ScreenName: updatedScreens[i].name,
+        purpose: updatedScreens[i].purpose,
+        screenDescription: updatedScreens[i].screenDescription,
+      });
+
+      // Update the code for this specific screen in the array
+      updatedScreens[i].code = response.data; // The API returns the code string
+
+      // Update state incrementally so the user sees screens appearing
+      setScreenConfig([...updatedScreens]);
+    }
+
+    console.log("All screens + UI generated and displayed");
+  } catch (e) {
+    console.error(e);
+  } finally {
+    setLoading(false);
+  }
+};
+  
   useEffect(() => {
     if (
       !PAUSE_PROJECT_FLOW &&
