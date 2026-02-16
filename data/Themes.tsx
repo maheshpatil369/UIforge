@@ -253,3 +253,18 @@ export function themeToCssVars(theme: any) {
   `;
 }
 
+export function applyTheme(theme: Theme) {
+  const root = document.documentElement;
+  Object.entries(theme).forEach(([key, value]) => {
+    // Handle the chart array separately if needed
+    if (key === 'chart' && Array.isArray(value)) {
+      value.forEach((color, index) => {
+        root.style.setProperty(`--chart-${index + 1}`, color as string);
+      });
+    } else {
+      // Map CamelCase (cardForeground) to kebab-case (--card-foreground)
+      const cssVarName = `--${key.replace(/([a-z0-9]|(?=[A-Z]))([A-Z])/g, '$1-$2').toLowerCase()}`;
+      root.style.setProperty(cssVarName, value as string);
+    }
+  });
+}

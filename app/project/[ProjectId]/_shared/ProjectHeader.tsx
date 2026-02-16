@@ -1,6 +1,8 @@
 import React from 'react'
 import Image from 'next/image'
 import { Button } from '@/components/ui/button'
+import { ThemeToggle } from '@/components/ui/ThemeToogle';
+import { SignedIn, UserButton } from '@clerk/nextjs';
 
 // Add progress and loading to Props type
 type Props = {
@@ -36,6 +38,12 @@ const ProjectHeader = ({ progress = 0, loading }: Props) => {
           <Button className='bg-red-600 hover:bg-red-500'>
             Save {progress === 100 && <span className="text-[10px] text-green-600">●</span>}
           </Button>
+          <SignedIn>
+  <div className="flex items-center gap-4">
+    <ThemeToggle />
+    <UserButton />
+  </div>
+</SignedIn>
         </div>
 
       </div>

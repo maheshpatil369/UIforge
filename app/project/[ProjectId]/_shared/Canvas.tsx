@@ -10,7 +10,6 @@ type Props = {
   loading?: boolean;
 };
 
-// Floating Map-Style Controls
 const Controls = () => {
   const { zoomIn, zoomOut, resetTransform } = useControls();
   return (
@@ -109,6 +108,7 @@ function Canvas({ projectDetail, screenConfig, loading }: Props) {
                 setPanningEnabled={setPanningEnabled}
                 htmlCode={screen?.code}
                 projectDetail={projectDetail}
+                panningEnabled={panningEnabled} 
               />
             ))}
           </div>

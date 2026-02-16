@@ -12,6 +12,7 @@ type Props = {
   height: number;
   htmlCode: string | undefined;
   projectDetail: ProjectType | undefined;
+  panningEnabled: boolean;
 };
 
 function ScreenFrame({
@@ -22,6 +23,7 @@ function ScreenFrame({
   setPanningEnabled,
   htmlCode,
   projectDetail,
+  panningEnabled,
 }: Props) {
 
   const isGenerated = htmlCode && htmlCode.trim() !== "";
@@ -88,13 +90,12 @@ function ScreenFrame({
         </div>
 
         {/* Iframe */}
-        <iframe
-          className={`w-full flex-1 bg-white transition-opacity ${
-            !setPanningEnabled ? "pointer-events-auto" : "pointer-events-auto"
-          }`}
-          sandbox="allow-same-origin allow-scripts"
-          srcDoc={html}
-        />
+    <iframe
+  className={`w-full h-[calc(100%-72px)] bg-white transition-opacity ${!panningEnabled ? "pointer-events-none" : "pointer-events-auto"
+  }`}
+  sandbox="allow-same-origin allow-scripts"
+  srcDoc={html}
+/>
 
         {/* Footer status indicator */}
         <div className={`h-[32px] w-full border-t flex items-center px-3 justify-between ${isGenerated ? 'bg-green-50' : 'bg-red-50'}`}>
