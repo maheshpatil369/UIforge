@@ -1,5 +1,3 @@
-// uiforage\app\project\[ProjectId]\page.tsx
-
 "use client";
 import React, { useEffect, useState } from "react";
 import ProjectHeader from "./_shared/ProjectHeader";
@@ -11,12 +9,14 @@ import axios from "axios";
 import { set } from "date-fns";
 import { Loader2Icon } from "lucide-react";
 import Canvas from "./_shared/Canvas";
+
 export const ProjectCanvasPlayground = () => {
   const { ProjectId } = useParams();
   const [projectDetail, setProjectDetail] = useState<any>();
   const [screenConfig, setScreenConfig] = useState<any[]>([]);
   const [loading, setLoading] = useState(false);
   const [loadingMsg, setLoadingMsg] = useState("Loading...");
+  const [progress, setProgress] = useState(0); // ✅ added
 
   const PAUSE_PROJECT_FLOW = false;
 
@@ -29,9 +29,6 @@ export const ProjectCanvasPlayground = () => {
       GetProjectDetail();
     }
   }, [ProjectId]);
-
-
-
 
   // const generateScreenConfig = async () => {
   //   try {
@@ -74,51 +71,59 @@ export const ProjectCanvasPlayground = () => {
   //   }
   // }, [projectDetail && screenConfig]);
 
+  // app/project/[ProjectId]/page.tsx
 
+  // app/project/[ProjectId]/page.tsx
 
-// app/project/[ProjectId]/page.tsx
+  const generateScreenConfig = async () => {
+    try {
+      setLoading(true); // Start the global loader
+      setLoadingMsg("Designing your application architecture...");
+      setProgress(0); // ✅ added reset
 
-const generateScreenConfig = async () => {
-  try {
-    setLoading(true);
-    setLoadingMsg("Generating screens...");
-
-    const result = await axios.post("/api/generate-congif", {
-      projectId: ProjectId,
-      deviceType: projectDetail?.device,
-      userInput: projectDetail?.userInput,
-    });
-
-    const screens = result.data?.screens || [];
-    setLoadingMsg("Generating screen UI...");
-
-    // Create a temporary array to hold screens with code
-    const updatedScreens = [...screens];
-
-    for (let i = 0; i < updatedScreens.length; i++) {
-      const response = await axios.post("/api/generate-screen-ui", {
+      const result = await axios.post("/api/generate-congif", {
         projectId: ProjectId,
-        screenId: updatedScreens[i].id,
-        ScreenName: updatedScreens[i].name,
-        purpose: updatedScreens[i].purpose,
-        screenDescription: updatedScreens[i].screenDescription,
+        deviceType: projectDetail?.device,
+        userInput: projectDetail?.userInput,
       });
 
-      // Update the code for this specific screen in the array
-      updatedScreens[i].code = response.data; // The API returns the code string
+      const screens = result.data?.screens || [];
+      setScreenConfig(screens); // Show initial frames
 
-      // Update state incrementally so the user sees screens appearing
-      setScreenConfig([...updatedScreens]);
+      // Loop through each screen to generate UI
+      for (let i = 0; i < screens.length; i++) {
+        const screen = screens[i];
+        // Update loading message to show progress (e.g., "Generating Screen 1 of 5...")
+        setLoadingMsg(
+          `Generating UI for ${screen.name} (${i + 1}/${screens.length})...`
+        );
+
+        const response = await axios.post("/api/generate-screen-ui", {
+          projectId: ProjectId,
+          screenId: screen.id,
+          ScreenName: screen.name,
+          purpose: screen.purpose,
+          screenDescription: screen.screenDescription,
+        });
+
+        // Update state so the screen renders immediately once ready
+        setScreenConfig((prev) =>
+          prev.map((s) =>
+            s.id === screen.id ? { ...s, code: response.data } : s
+          )
+        );
+
+        // ✅ added percentage progress
+        const currentProgress = Math.round(((i + 1) / screens.length) * 100);
+        setProgress(currentProgress);
+      }
+    } catch (e) {
+      console.error(e);
+    } finally {
+      setLoading(false); // Hide the loader when everything is done
     }
+  };
 
-    console.log("All screens + UI generated and displayed");
-  } catch (e) {
-    console.error(e);
-  } finally {
-    setLoading(false);
-  }
-};
-  
   useEffect(() => {
     if (
       !PAUSE_PROJECT_FLOW &&
@@ -145,7 +150,8 @@ const generateScreenConfig = async () => {
 
   return (
     <div className="h-screen flex flex-col">
-      <ProjectHeader />
+      {/* Pass progress to Header */}
+      <ProjectHeader progress={progress} loading={loading} />
 
       {/* Main workspace */}
       <div className="flex flex-1 min-h-0">
@@ -156,8 +162,10 @@ const generateScreenConfig = async () => {
 
         {/* Right canvas */}
         <div className="flex-1 overflow-hidden bg-gray-100">
-          <Canvas projectDetail={projectDetail} 
-          screenConfig={screenConfig} />
+          <Canvas
+            projectDetail={projectDetail}
+            screenConfig={screenConfig}
+          />
         </div>
       </div>
     </div>
