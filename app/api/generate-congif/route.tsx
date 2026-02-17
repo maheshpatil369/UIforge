@@ -1,5 +1,3 @@
-// uiforge\app\api\generate-congif\route.tsx
-
 import { NextRequest, NextResponse } from "next/server";
 import { openrouter } from "@/config/openrouter";
 import { APP_LAYOUT_CONFIG_PROMPT, GENERATE_SCREEN_PROMPT } from "@/data/Prompt";
@@ -8,15 +6,22 @@ import { db } from "@/config/db";
 import { eq } from "drizzle-orm";
 
 export async function POST(req: NextRequest) {
+  console.log("🟢 [API] /generate-config HIT");
+
   try {
+    console.log("🟡 [STEP 1] Parsing request body...");
     const { userInput, projectId } = await req.json();
 
+    console.log("🟢 userInput:", userInput);
+    console.log("🟢 projectId:", projectId);
+
+    console.log("🟡 [STEP 2] Calling OpenRouter model...");
     const result = await openrouter.callModel({
       model: "openai/gpt-4o-mini",
       input: [
-       {
-      role: "system",
-      content: `
+        {
+          role: "system",
+          content: `
 Return JSON only.
 Theme MUST be exactly ONE of:
 GOOGLE, NETFLIX, HOTSTAR, YOUTUBE, GITHUB, MICROSOFT, WHATSAPP, TELEGRAM
@@ -41,7 +46,7 @@ Structure:
 
 screenDescription must be a short paragraph explaining the screen.
 `
-    },
+        },
         {
           role: "user",
           content: userInput,
@@ -52,11 +57,22 @@ screenDescription must be a short paragraph explaining the screen.
       },
     });
 
+    console.log("🟡 [STEP 3] Reading AI response text...");
     const text = await result.getText();
-    if (!text) throw new Error("Empty GPT response");
 
+    console.log("🟢 Raw AI text:", text);
+
+    if (!text) {
+      console.error("🔴 AI returned EMPTY text");
+      throw new Error("Empty GPT response");
+    }
+
+    console.log("🟡 [STEP 4] Parsing AI JSON...");
     const JSONaiResult = JSON.parse(text);
 
+    console.log("🟢 Parsed AI JSON:", JSONaiResult);
+
+    console.log("🟡 [STEP 5] Updating project table...");
     await db
       .update(projectsTable)
       .set({
@@ -66,57 +82,40 @@ screenDescription must be a short paragraph explaining the screen.
       })
       .where(eq(projectsTable.projectId, projectId));
 
+    console.log("🟢 Project table updated");
 
-// for (const screen of JSONaiResult.screens) {
-//   const uiResult = await openrouter.callModel({
-//     model: "openai/gpt-4o-mini",
-//     input: [
-//       { role: "system", content: GENERATE_SCREEN_PROMPT },
-//       {
-//         role: "user",
-//         content: `
-// Screen Name: ${screen.name}
-// Purpose: ${screen.purpose}
-// Description: ${screen.screenDescription}
-//         `,
-//       },
-//     ],
-//   });
+    console.log("🟡 [STEP 6] Inserting screens...");
+    console.log("🟢 Screens count:", JSONaiResult.screens?.length);
 
-//   let htmlCode = await uiResult.getText();
-//   htmlCode = htmlCode?.replace(/```html|```/g, "").trim();
+    await Promise.all(
+      JSONaiResult.screens.map((screen: any) => {
+        console.log("➡️ Inserting screen:", screen.name);
 
-//   screensWithCode.push({
-//     ...screen,
-//     code: htmlCode,
-//   });
-// }
+        return db.insert(ScreenConfigTable).values({
+          projectId,
+          screenId:
+            screen.id ?? screen.name.toLowerCase().replace(/\s+/g, "-"),
+          screenName: screen.name,
+          purpose: screen.purpose,
+          screenDescription: screen.screenDescription,
+          code: "",
+        });
+      })
+    );
 
+    console.log("🟢 All screens inserted successfully");
 
-
-await Promise.all(
-  JSONaiResult.screens.map((screen: any) =>
-    db.insert(ScreenConfigTable).values({
-      projectId,
-      screenId: screen.id ?? screen.name.toLowerCase().replace(/\s+/g, "-"),
-      screenName: screen.name,
-      purpose: screen.purpose,
-      screenDescription: screen.screenDescription,
-      code: "", 
-    })
-  )
-);
-
-
-
+    console.log("🟢 [SUCCESS] Returning response");
     return NextResponse.json(JSONaiResult);
-  } catch (error) {
-    console.error("GPT API ERROR:", error);
+
+  } catch (error: any) {
+    console.error("🔴 [API ERROR] generate-config FAILED");
+    console.error("🔴 Error message:", error?.message);
+    console.error("🔴 Full error:", error);
 
     return NextResponse.json(
-      { msg: "Error", error: String(error) },
+      { msg: "Error", error: String(error?.message || error) },
       { status: 500 }
     );
   }
 }
-
