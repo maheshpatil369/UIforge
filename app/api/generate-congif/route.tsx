@@ -57,15 +57,26 @@ screenDescription must be a short paragraph explaining the screen.
       },
     });
 
-    console.log("🟡 [STEP 3] Reading AI response text...");
-    const text = await result.getText();
+console.log("🟡 [STEP 3] Reading AI response output...");
 
-    console.log("🟢 Raw AI text:", text);
+console.log("🟡 [STEP 3] Reading AI response text...");
 
-    if (!text) {
-      console.error("🔴 AI returned EMPTY text");
-      throw new Error("Empty GPT response");
-    }
+let text: string;
+
+try {
+  text = await result.getText();
+} catch (e) {
+  console.error("🔴 getText() failed, raw result:", result);
+  throw new Error("Unexpected response type from OpenRouter");
+}
+
+console.log("🟢 Raw AI text:", text);
+
+if (!text) {
+  throw new Error("Empty GPT response");
+}
+
+console.log("🟢 Extracted AI text:", text);
 
     console.log("🟡 [STEP 4] Parsing AI JSON...");
     const JSONaiResult = JSON.parse(text);
