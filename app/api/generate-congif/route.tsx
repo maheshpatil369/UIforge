@@ -1,6 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
 import { openrouter } from "@/config/openrouter";
-import { APP_LAYOUT_CONFIG_PROMPT, GENERATE_SCREEN_PROMPT } from "@/data/Prompt";
 import { projectsTable, ScreenConfigTable } from "@/config/schema";
 import { db } from "@/config/db";
 import { eq } from "drizzle-orm";
@@ -16,12 +15,14 @@ export async function POST(req: NextRequest) {
     console.log("🟢 projectId:", projectId);
 
     console.log("🟡 [STEP 2] Calling OpenRouter model...");
-    const result = await openrouter.callModel({
-      model: "openai/gpt-4o-mini",
-      input: [
-        {
-          role: "system",
-          content: `
+
+    // ✅ FIXED CALL (input = first arg, options = second arg)
+  const result = await openrouter.callModel({
+  model: "openai/gpt-4o-mini",
+  input: [
+    {
+      role: "system",
+      content: `
 Return JSON only.
 Theme MUST be exactly ONE of:
 GOOGLE, NETFLIX, HOTSTAR, YOUTUBE, GITHUB, MICROSOFT, WHATSAPP, TELEGRAM
@@ -43,40 +44,32 @@ Structure:
     }
   ]
 }
-
-screenDescription must be a short paragraph explaining the screen.
 `
-        },
-        {
-          role: "user",
-          content: userInput,
-        },
-      ],
-      text: {
-        format: { type: "json_object" },
-      },
-    });
+    },
+    {
+      role: "user",
+      content: userInput,
+    },
+  ],
+});
 
-console.log("🟡 [STEP 3] Reading AI response output...");
 
-console.log("🟡 [STEP 3] Reading AI response text...");
+    console.log("🟡 [STEP 3] Reading AI response text...");
 
-let text: string;
+    let text: string;
 
-try {
-  text = await result.getText();
-} catch (e) {
-  console.error("🔴 getText() failed, raw result:", result);
-  throw new Error("Unexpected response type from OpenRouter");
-}
+    try {
+      text = await result.getText();
+    } catch (e) {
+      console.error("🔴 getText() failed, raw result:", result);
+      throw new Error("Unexpected response type from OpenRouter");
+    }
 
-console.log("🟢 Raw AI text:", text);
+    console.log("🟢 Raw AI text:", text);
 
-if (!text) {
-  throw new Error("Empty GPT response");
-}
-
-console.log("🟢 Extracted AI text:", text);
+    if (!text) {
+      throw new Error("Empty GPT response");
+    }
 
     console.log("🟡 [STEP 4] Parsing AI JSON...");
     const JSONaiResult = JSON.parse(text);
@@ -115,8 +108,8 @@ console.log("🟢 Extracted AI text:", text);
     );
 
     console.log("🟢 All screens inserted successfully");
-
     console.log("🟢 [SUCCESS] Returning response");
+
     return NextResponse.json(JSONaiResult);
 
   } catch (error: any) {
