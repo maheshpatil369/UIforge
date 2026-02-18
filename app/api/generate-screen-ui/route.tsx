@@ -1,6 +1,3 @@
-// uiforge\app\api\generate-screen-ui\route.tsx
-
-import { openrouter } from "@/config/openrouter";
 import { ScreenConfigTable } from "@/config/schema";
 import { GENERATE_SCREEN_PROMPT } from "@/data/Prompt";
 import { NextRequest, NextResponse } from "next/server";
@@ -8,53 +5,100 @@ import { db } from "@/config/db";
 import { and, eq } from "drizzle-orm";
 
 export async function POST(req: NextRequest) {
-  const {
-    projectId,
-    screenId,
-    ScreenName,
-    purpose,
-    screenDescription,
-    code: existingCode,
-  } = await req.json();
-
-  const userInput = `
-    screen Name is: ${ScreenName},
-    screen Purpose: ${purpose},
-    screen Description: ${screenDescription}
-  `;
+  console.log("🟢 [API HIT] /api/generate-screen-ui");
 
   try {
-    const result = await openrouter.callModel({
-      model: "openai/gpt-4o-mini",
-      input: [
-        {
-          role: "system",
-          content: GENERATE_SCREEN_PROMPT,
-        },
-        {
-          role: "user",
-          content: userInput,
-        },
-      ],
-      
-    });
+    console.log("🟡 [STEP 1] Parsing request body...");
+    const {
+      projectId,
+      screenId,
+      ScreenName,
+      purpose,
+      screenDescription,
+    } = await req.json();
 
-    const generatedCode = await result.getText();
+    console.log("🟢 projectId:", projectId);
+    console.log("🟢 screenId:", screenId);
+    console.log("🟢 ScreenName:", ScreenName);
+    console.log("🟢 purpose:", purpose);
+    console.log("🟢 screenDescription:", screenDescription);
 
-    const updateResult = await db
+    const userInput = `
+screen Name: ${ScreenName}
+screen Purpose: ${purpose}
+screen Description: ${screenDescription}
+`;
+
+    console.log("🟡 [STEP 2] Calling OpenRouter REST API for screen UI...");
+
+    const response = await fetch(
+      "https://openrouter.ai/api/v1/chat/completions",
+      {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${process.env.OPENROUTER_API_KEY}`,
+          "Content-Type": "application/json",
+          "HTTP-Referer": "https://uixmaker.in",
+          "X-Title": "UIForge",
+        },
+        body: JSON.stringify({
+          model: "openai/gpt-4o-mini",
+          messages: [
+            {
+              role: "system",
+              content: GENERATE_SCREEN_PROMPT,
+            },
+            {
+              role: "user",
+              content: userInput,
+            },
+          ],
+          temperature: 0.2,
+          stream: false,
+        }),
+      }
+    );
+
+    console.log("🟢 OpenRouter HTTP status:", response.status);
+
+    console.log("🟡 [STEP 3] Reading OpenRouter response JSON...");
+    const data = await response.json();
+
+    console.log("🟢 OpenRouter raw response:", data);
+
+    const generatedCode =
+      data?.choices?.[0]?.message?.content ?? "";
+
+    console.log("🟢 Generated UI code length:", generatedCode.length);
+
+    if (!generatedCode || typeof generatedCode !== "string") {
+      throw new Error("Empty or invalid UI code from OpenRouter");
+    }
+
+    console.log("🟡 [STEP 4] Updating screen code in DB...");
+
+    await db
       .update(ScreenConfigTable)
-      
       .set({ code: generatedCode })
       .where(
         and(
           eq(ScreenConfigTable.projectId, projectId),
-          eq(ScreenConfigTable.screenId, screenId),
-        ),
-      )
-      .returning();
+          eq(ScreenConfigTable.screenId, screenId)
+        )
+      );
 
-    return NextResponse.json(generatedCode);
-  } catch (e) {
-    return NextResponse.json({ msg: "Internal Server Error!" });
+    console.log("🟢 [SUCCESS] Screen UI saved to DB");
+
+    return NextResponse.json({ code: generatedCode });
+
+  } catch (error: any) {
+    console.error("🔴 [API ERROR] generate-screen-ui failed");
+    console.error("🔴 Error message:", error?.message);
+    console.error("🔴 Full error:", error);
+
+    return NextResponse.json(
+      { msg: "Internal Server Error!" },
+      { status: 500 }
+    );
   }
 }
