@@ -1,5 +1,5 @@
 "use client";
-import React, { useEffect, useState, use } from "react";
+import React, { useEffect, useState, use, useRef } from "react";
 import ProjectHeader from "./_shared/ProjectHeader";
 import { SettingSection } from "./_shared/SettingSection";
 import axios from "axios";
@@ -49,34 +49,55 @@ const ProjectCanvasPlayground = ({ params }: PageProps) => {
 
       setScreenConfig(screens);
 
-      for (let i = 0; i < screens.length; i++) {
-        const screen = screens[i];
+  for (let i = currentIndex; i < screens.length; i++) {
+  if (isCancelled) {
+    console.warn("⛔ Generation cancelled");
+    break;
+  }
 
-        console.log(`🎨 Generating UI for: ${screen.name}`);
+  setCurrentIndex(i);
 
-        const response = await axios.post("/api/generate-screen-ui", {
-          projectId: ProjectId,
-          screenId: screen.id,
-          ScreenName: screen.name,
-          purpose: screen.purpose,
-          screenDescription: screen.screenDescription,
-        });
+  await waitWhilePaused(); // 🟡 PAUSE HERE
 
-        console.log("🧾 Raw screen-ui response:", response.data);
+  abortControllerRef.current = new AbortController();
 
-        setScreenConfig((prev) =>
-          prev.map((s) =>
-            s.id === screen.id
-              ? {
-                  ...s,
-                  code: response.data?.code ?? "", // ✅ FIX
-                }
-              : s
-          )
-        );
+  const screen = screens[i];
+  console.log(`🎨 Generating UI for: ${screen.name}`);
 
-        setProgress(Math.round(((i + 1) / screens.length) * 100));
+  try {
+    const response = await axios.post(
+      "/api/generate-screen-ui",
+      {
+        projectId: ProjectId,
+        screenId: screen.id,
+        ScreenName: screen.name,
+        purpose: screen.purpose,
+        screenDescription: screen.screenDescription,
+      },
+      {
+        signal: abortControllerRef.current.signal, // 🔥 IMPORTANT
       }
+    );
+
+    setScreenConfig(prev =>
+      prev.map(s =>
+        s.id === screen.id
+          ? { ...s, code: response.data?.code ?? "" }
+          : s
+      )
+    );
+
+    setProgress(Math.round(((i + 1) / screens.length) * 100));
+  } catch (err: any) {
+    if (err.name === "CanceledError") {
+      console.warn("🛑 API aborted");
+      break;
+    } else {
+      throw err;
+    }
+  }
+}
+
 
       console.log("✅ All screens generated");
     } catch (e) {
@@ -117,9 +138,46 @@ const ProjectCanvasPlayground = ({ params }: PageProps) => {
     }
   };
 
+
+  const [isPaused, setIsPaused] = useState(false);
+const [isCancelled, setIsCancelled] = useState(false);
+const [currentIndex, setCurrentIndex] = useState(0);
+
+const abortControllerRef = useRef<AbortController | null>(null);
+
+const pauseGeneration = () => {
+  setIsPaused(true);
+};
+
+const resumeGeneration = () => {
+  setIsPaused(false);
+};
+
+const cancelGeneration = () => {
+  setIsCancelled(true);
+  setIsPaused(false);
+
+  if (abortControllerRef.current) {
+    abortControllerRef.current.abort(); // 🔥 HARD STOP
+  }
+};
+const waitWhilePaused = async () => {
+  while (isPaused) {
+    await new Promise(res => setTimeout(res, 300));
+  }
+};
+
   return (
     <div className="h-screen flex flex-col">
-      <ProjectHeader progress={progress} loading={loading} />
+   <ProjectHeader
+  progress={progress}
+  loading={loading}
+  isPaused={isPaused}
+  onPause={pauseGeneration}
+  onResume={resumeGeneration}
+  onCancel={cancelGeneration}
+/>
+
 
       <div className="flex flex-1 min-h-0">
         <div className="w-[300px] border-r overflow-y-auto">

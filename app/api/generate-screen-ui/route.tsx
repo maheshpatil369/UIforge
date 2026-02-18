@@ -30,11 +30,13 @@ screen Description: ${screenDescription}
 `;
 
     console.log("🟡 [STEP 2] Calling OpenRouter REST API for screen UI...");
+    console.log("🧠 Abort signal present:", !!req.signal);
 
     const response = await fetch(
       "https://openrouter.ai/api/v1/chat/completions",
       {
         method: "POST",
+        signal: req.signal, // 🔥 IMPORTANT: allows abort from client
         headers: {
           Authorization: `Bearer ${process.env.OPENROUTER_API_KEY}`,
           "Content-Type": "application/json",
@@ -64,7 +66,7 @@ screen Description: ${screenDescription}
     console.log("🟡 [STEP 3] Reading OpenRouter response JSON...");
     const data = await response.json();
 
-    console.log("🟢 OpenRouter raw response:", data);
+    console.log("🟢 OpenRouter raw response received");
 
     const generatedCode =
       data?.choices?.[0]?.message?.content ?? "";
@@ -92,6 +94,16 @@ screen Description: ${screenDescription}
     return NextResponse.json({ code: generatedCode });
 
   } catch (error: any) {
+    // 🔥 VERY IMPORTANT: detect abort vs real error
+    if (error?.name === "AbortError") {
+      console.warn("🛑 [ABORTED] Screen generation request cancelled by client");
+
+      return NextResponse.json(
+        { msg: "Generation aborted by user" },
+        { status: 499 } // Client Closed Request (semantic)
+      );
+    }
+
     console.error("🔴 [API ERROR] generate-screen-ui failed");
     console.error("🔴 Error message:", error?.message);
     console.error("🔴 Full error:", error);

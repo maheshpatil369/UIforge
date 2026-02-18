@@ -60,7 +60,7 @@ ${
   safeHtmlCode.trim()
     ? safeHtmlCode
     : `<div class="h-full flex items-center justify-center text-sm opacity-60">
-         No UI generated yet
+       Processing....
        </div>`
 }
 
