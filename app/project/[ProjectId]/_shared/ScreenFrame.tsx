@@ -26,7 +26,9 @@ function ScreenFrame({
   panningEnabled,
 }: Props) {
 
-  const isGenerated = htmlCode && htmlCode.trim() !== "";
+  const safeHtmlCode = typeof htmlCode === "string" ? htmlCode : "";
+const isGenerated = safeHtmlCode.trim() !== "";
+
 
   const themeCss = projectDetail?.theme
     ? themeToCssVars(THEMES[projectDetail.theme])
@@ -54,13 +56,14 @@ function ScreenFrame({
 </head>
 
 <body class="bg-[var(--background)] text-[var(--foreground)] w-full">
-  ${
-    htmlCode?.trim()
-      ? htmlCode
-      : `<div class="h-full flex items-center justify-center text-sm opacity-60">
-           No UI generated yet
-         </div>`
-  }
+${
+  safeHtmlCode.trim()
+    ? safeHtmlCode
+    : `<div class="h-full flex items-center justify-center text-sm opacity-60">
+         No UI generated yet
+       </div>`
+}
+
 </body>
 </html>
 `;
