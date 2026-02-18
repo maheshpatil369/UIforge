@@ -3,6 +3,9 @@ import { ProjectType } from "@/type/types";
 import { GripVertical } from "lucide-react";
 import React from "react";
 import { Rnd } from "react-rnd";
+import  ScreenHandler  from "./ScreenHandler";
+import { ScreenConfigType } from "@/type/types";
+
 
 type Props = {
   x: number;
@@ -13,7 +16,8 @@ type Props = {
   htmlCode: string | undefined;
   projectDetail: ProjectType | undefined;
   panningEnabled: boolean;
-};
+  screen: ScreenConfigType;
+}
 
 function ScreenFrame({
   x,
@@ -24,6 +28,7 @@ function ScreenFrame({
   htmlCode,
   projectDetail,
   panningEnabled,
+  screen,
 }: Props) {
 
   const safeHtmlCode = typeof htmlCode === "string" ? htmlCode : "";
@@ -89,6 +94,7 @@ ${
           <GripVertical className="text-gray-400 h-4 w-4" />
           <span className="text-xs font-semibold text-gray-500 uppercase tracking-tight">
             {projectDetail?.device === "mobile" ? "Mobile Screen" : "Desktop View"}
+            <ScreenHandler screen={screen}  />
           </span>
         </div>
 

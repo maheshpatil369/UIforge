@@ -42,11 +42,24 @@ function Canvas({ projectDetail, screenConfig, loading }: Props) {
   const [panningEnabled, setPanningEnabled] = useState(true);
   const isMobile = projectDetail?.device == "mobile";
 
-  const SCREEN_WIDTH = isMobile ? 400 : 1200;
-  const SCREEN_HIGHT = isMobile ? 800 : 800;
-  const GAP = isMobile ? 10 : 70;
+  // const SCREEN_WIDTH = isMobile ? 400 : 1200;
+  // const SCREEN_HIGHT = isMobile ? 800 : 800;
+  // const GAP = isMobile ? 10 : 70;
 
-  // Prevent browser-level zooming on the canvas container
+const VIEWPORT_WIDTH =
+  typeof window !== "undefined" ? window.innerWidth : 1440;
+
+const SCREEN_WIDTH = isMobile
+  ? 390 
+  : Math.min(1200, VIEWPORT_WIDTH * 0.75); 
+
+const SCREEN_HIGHT = isMobile
+  ? 780
+  : 800;
+
+const GAP = isMobile ? 12 : 80;
+
+
   useEffect(() => {
     const container = containerRef.current;
     if (!container) return;
@@ -63,6 +76,17 @@ function Canvas({ projectDetail, screenConfig, loading }: Props) {
       container.removeEventListener("wheel", handleWheel);
     };
   }, []);
+
+const totalScreens = screenConfig.length;
+
+const totalWidth =
+  totalScreens * SCREEN_WIDTH + (totalScreens - 1) * GAP;
+
+const startX = -totalWidth / 2 + SCREEN_WIDTH / 2;
+
+const PADDING_TOP = 75;   
+const PADDING_LEFT = 75;
+
 
   return (
     <div
@@ -97,11 +121,12 @@ function Canvas({ projectDetail, screenConfig, loading }: Props) {
             cursor: panningEnabled ? "grab" : "default",
           }}
         >
-          <div className="flex items-start p-[500px]">
+          <div className="relative">
             {screenConfig.map((screen, index) => (
               <ScreenFrame
-                x={index * (SCREEN_WIDTH + GAP)}
-                y={0}
+            x={startX + index * (SCREEN_WIDTH + GAP) + PADDING_LEFT}
+  y={PADDING_TOP}
+
                 width={SCREEN_WIDTH}
                 height={SCREEN_HIGHT}
                 key={index}
@@ -109,6 +134,7 @@ function Canvas({ projectDetail, screenConfig, loading }: Props) {
                 htmlCode={screen?.code}
                 projectDetail={projectDetail}
                 panningEnabled={panningEnabled} 
+                screen={screen}
               />
             ))}
           </div>

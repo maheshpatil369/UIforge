@@ -26,7 +26,7 @@ import { randomUUID } from "crypto";
 
 function Hero() {
   const [userInput, setUserInput] = useState<string>("");
-  const [device, setDevice] = useState<string>("website");
+const [device, setDevice] = useState<string>("mobile");
   const { user, isSignedIn } = useUser();
   const router = useRouter();
   const [loading, setLoading] = useState(false);
@@ -55,39 +55,69 @@ function Hero() {
     console.log(data);
     setLoading(false);
 
-    router.push(`/project/`+projectId);
+    router.push(`/project/` + projectId);
   };
 
+  const handleKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
+  if (e.key === "Enter" && !e.shiftKey) {
+    e.preventDefault(); // stop new line
+    if (!loading && userInput.trim()) {
+      onCreateProject();
+    }
+  }
+};
+
+
   return (
-    <div className="p-10 md:px-24 lg:px-48 xl:px-60 mt-20">
-      <div className="group relative mx-auto max-w-sm flex items-center justify-center rounded-full px-4 py-1.5 shadow-[inset_0_-8px_10px_#8fdfff1f] transition-shadow duration-500 ease-out hover:shadow-[inset_0_-5px_10px_#8fdfff3f]">
-        <span
-          className={cn(
-            "animate-gradient absolute inset-0 block h-full w-full rounded-[inherit] bg-gradient-to-r from-[#ffaa40]/50 via-[#9c40ff]/50 to-[#ffaa40]/50 bg-[length:300%_100%] p-[1px]",
-          )}
-          style={{
-            WebkitMask:
-              "linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0)",
-            WebkitMaskComposite: "destination-out",
-            mask: "linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0)",
-            maskComposite: "subtract",
-            WebkitClipPath: "padding-box",
-          }}
-        />
-        🎉 <hr className="mx-2 h-4 w-px shrink-0 bg-neutral-500" />
-        <AnimatedGradientText className="text-sm font-medium">
-          Introducing Magic UI
-        </AnimatedGradientText>
-        <ChevronRight className="ml-1 size-4 stroke-neutral-500 transition-transform duration-300 ease-in-out group-hover:translate-x-0.5" />
-      </div>
-      <h2 className="text-5xl font-bold text-center">
-        Design High Quality{" "}
-        <span className="text-primary">Website and Mobile App </span> Designs
-      </h2>
-      <p className="text-center text-gray-600 text-lg mt-3">
-        {" "}
-        Imagine your idea and turn into reality
-      </p>
+    <div className="p-10 md:px-24 lg:px-48 xl:px-60 mt-13">
+   <div className="group relative mx-auto max-w-sm flex items-center justify-center rounded-full px-5 py-2 mb-6
+  bg-white/10 backdrop-blur-md
+  shadow-[0_0_25px_rgba(156,64,255,0.35)] 
+  transition-all duration-500 ease-out 
+  hover:shadow-[0_0_35px_rgba(156,64,255,0.6)]">
+
+  {/* Strong Animated Border Glow */}
+  <span
+    className="absolute inset-0 rounded-full p-[2px] 
+    bg-gradient-to-r from-orange-400 via-violet-500 to-cyan-400 
+    bg-[length:300%_100%] animate-gradient"
+    style={{
+      WebkitMask:
+        "linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0)",
+      WebkitMaskComposite: "destination-out",
+      mask: "linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0)",
+      maskComposite: "subtract",
+    }}
+  />
+
+  <span className="relative flex items-center text-white font-medium">
+    🎉 
+    <hr className="mx-2 h-4 w-px bg-white/40" />
+    <AnimatedGradientText className="text-sm font-semibold">
+      Introducing Magic UI
+    </AnimatedGradientText>
+    <ChevronRight className="ml-1 size-4 text-white/80 transition-transform duration-300 group-hover:translate-x-1" />
+  </span>
+</div>
+
+  <h2 className="text-5xl font-bold text-center text-violet-600">
+  Design High Quality{" "}
+  <span className="text-teal-500">
+    Website and Mobile App
+  </span>{" "}
+  Designs
+</h2>
+
+<p className="text-center text-gray-700 text-lg mt-3">
+  <span className="text-violet-500 font-medium">
+    Imagine your idea
+  </span>{" "}
+  and turn into{" "}
+  <span className="text-teal-500 font-medium">
+    reality
+  </span>
+</p>
+
       <div className="flex w-full gap-6 mt-5 items-center justify-center">
         <InputGroup className="max-w-lg bg-white rounded-2xl">
           <InputGroupTextarea
@@ -99,26 +129,28 @@ function Hero() {
             }
             className={cn(
               "flex field-sizing-content min-h-24 w-full resize-none rounded-md bg-transparent px-3 py-2.5 outline-none",
-              !isSignedIn && "opacity-50 cursor-not-allowed",
+              !isSignedIn && "opacity-50",
             )}
             value={userInput}
             onChange={(event) => setUserInput(event.target?.value)}
+            onKeyDown={handleKeyDown} 
           />
           <InputGroupAddon align="block-end">
-            <Select onValueChange={(value) => setDevice(value)}>
-              <SelectTrigger className="w-[180px]">
-                <SelectValue placeholder="Type" />
+            <Select value={device} onValueChange={(value) => setDevice(value)}>
+              <SelectTrigger className="text-bold w-[180px]">
+                <SelectValue placeholder="Mobile" />
               </SelectTrigger>
               <SelectContent>
                 <SelectGroup>
-                  <SelectItem value="website">Website</SelectItem>
                   <SelectItem value="mobile">Mobile</SelectItem>
+                  <SelectItem value="website">Website</SelectItem>
                 </SelectGroup>
               </SelectContent>
             </Select>
-            <InputGroupButton
+
+            <InputGroupButton 
               disabled={loading || !userInput} // Input empty ho toh button disable rakhein
-              className="cursor-pointer ml-auto flex items-center justify-center min-w-[40px]"
+              className="cursor-pointer ml-auto flex items-center justify-center bg-red-400 hover:bg-red-500 min-w-[40px]"
               size="sm"
               variant="default"
               onClick={onCreateProject}
@@ -126,7 +158,7 @@ function Hero() {
               {loading ? (
                 <Loader className="h-4 w-4 animate-spin" /> // animate-spin class check karein
               ) : (
-                <Send className="h-4 w-4 text-white" /> // Icon ki height/width aur color specify karein
+                <Send className=" h-4 w-4 text-white" /> // Icon ki height/width aur color specify karein
               )}
             </InputGroupButton>
           </InputGroupAddon>
