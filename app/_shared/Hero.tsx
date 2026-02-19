@@ -69,7 +69,27 @@ const [device, setDevice] = useState<string>("mobile");
 
 
   return (
-    <div className="p-10 md:px-24 lg:px-48 xl:px-60 mt-13">
+    <div className="
+  mx-auto
+  w-full
+  max-w-[360px]
+  sm:max-w-[640px]
+  md:max-w-[768px]
+  lg:max-w-[1024px]
+  xl:max-w-[1280px]
+">
+
+<div className="
+  h-screen
+  overflow-hidden
+  flex
+  flex-col
+  justify-center
+  px-4
+  sm:px-6
+  md:px-24
+">
+
    <div className="group relative mx-auto max-w-sm flex items-center justify-center rounded-full px-5 py-2 mb-6
   bg-white/10 backdrop-blur-md
   shadow-[0_0_25px_rgba(156,64,255,0.35)] 
@@ -100,7 +120,8 @@ const [device, setDevice] = useState<string>("mobile");
   </span>
 </div>
 
-  <h2 className="text-5xl font-bold text-center text-violet-600">
+ <h2 className="text-3xl sm:text-4xl md:text-5xl font-bold text-center text-violet-600 leading-tight">
+
   Design High Quality{" "}
   <span className="text-teal-500">
     Website and Mobile App
@@ -108,7 +129,8 @@ const [device, setDevice] = useState<string>("mobile");
   Designs
 </h2>
 
-<p className="text-center text-gray-700 text-lg mt-3">
+<p className="text-center text-gray-700 text-base sm:text-lg mt-3 px-2">
+
   <span className="text-violet-500 font-medium">
     Imagine your idea
   </span>{" "}
@@ -118,8 +140,10 @@ const [device, setDevice] = useState<string>("mobile");
   </span>
 </p>
 
-      <div className="flex w-full gap-6 mt-5 items-center justify-center">
-        <InputGroup className="max-w-lg bg-white rounded-2xl">
+      <div className="flex w-full gap-4 mt-6 items-center justify-center flex-col md:flex-row">
+
+        <InputGroup className="w-full max-w-lg bg-white rounded-2xl">
+
           <InputGroupTextarea
             disabled={!isSignedIn}
             placeholder={
@@ -137,7 +161,7 @@ const [device, setDevice] = useState<string>("mobile");
           />
           <InputGroupAddon align="block-end">
             <Select value={device} onValueChange={(value) => setDevice(value)}>
-              <SelectTrigger className="text-bold w-[180px]">
+             <SelectTrigger className="text-bold w-[130px] sm:w-[180px]">
                 <SelectValue placeholder="Mobile" />
               </SelectTrigger>
               <SelectContent>
@@ -164,20 +188,21 @@ const [device, setDevice] = useState<string>("mobile");
           </InputGroupAddon>
         </InputGroup>
       </div>
-      <div className="flex gap-3 mt-4">
+      <div className="grid grid-cols-2 sm:grid-cols-3 md:flex gap-3 mt-6 justify-center">
         {suggestions.map((suggestion, index) => (
           <div
             key={index}
-            className="p-2 border rounded-2xl flex flex-col items-center cursor-pointer bg-white z-20"
+           className="p-3 border rounded-2xl flex flex-col items-center cursor-pointer bg-white z-20 w-full sm:w-auto"
             onClick={() => setUserInput(suggestion?.description)}
           >
             <h2 className="text-lg">{suggestion?.icon}</h2>
-            <h2 className="text-center line-clamp-2 text-sm">
+            <h2 className="text-center line-clamp-2 text-sm sm:text-base">
               {suggestion?.name}
             </h2>
           </div>
         ))}
       </div>
+    </div>
     </div>
   );
 }

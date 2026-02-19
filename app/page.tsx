@@ -9,7 +9,10 @@ export default function Home() {
   return (
   <div>
     <Header />
-    <Hero />
+    <div className="min-h-screen overflow-hidden flex items-center justify-center">
+  <Hero />
+</div>
+
     <div className="absolute -top-40 -left-40 h-[500px] w-[500px] bg-purple-400/20 blur-[120px] rounded-full"></div>
     <div className="absolute -top-40 -left-40 h-[500px] w-[500px] bg-pink-400/20 blur-[120px] rounded-full"></div>
     <div className="absolute -top-40 -left-40 h-[500px] w-[500px] bg-blue-400/20 blur-[120px] rounded-full left-1/3"></div>
