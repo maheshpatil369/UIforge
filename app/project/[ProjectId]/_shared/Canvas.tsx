@@ -57,6 +57,9 @@ const SCREEN_HIGHT = isMobile
   ? 780
   : 800;
 
+  const INITIAL_SCALE =
+  VIEWPORT_WIDTH < 1024 ? 0.75 : 0.75;
+
 const GAP = isMobile ? 12 : 80;
 
 
@@ -99,7 +102,7 @@ const PADDING_LEFT = 75;
       }}
     >
       <TransformWrapper
-        initialScale={0.7}
+        initialScale={INITIAL_SCALE}
         minScale={0.1}
         maxScale={4}
         centerOnInit={true}
@@ -123,9 +126,10 @@ const PADDING_LEFT = 75;
         >
           <div className="relative">
             {screenConfig.map((screen, index) => (
-              <ScreenFrame
-            x={startX + index * (SCREEN_WIDTH + GAP) + PADDING_LEFT}
+             <ScreenFrame
+  x={PADDING_LEFT + index * (SCREEN_WIDTH + GAP)}
   y={PADDING_TOP}
+
 
                 width={SCREEN_WIDTH}
                 height={SCREEN_HIGHT}
