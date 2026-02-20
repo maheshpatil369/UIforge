@@ -51,7 +51,7 @@ const VIEWPORT_WIDTH =
 
 const SCREEN_WIDTH = isMobile
   ? 390 
-  : Math.min(1200, VIEWPORT_WIDTH * 0.75); 
+  : Math.min(1200, VIEWPORT_WIDTH * 0.70); 
 
 const SCREEN_HIGHT = isMobile
   ? 780
